@@ -18,7 +18,8 @@ OFFER_PATTERNS = [
     r"(\d[\d,]*)\s+offers?\b",                                   # "2 offers", "1 offer"
 ]
 
- 
-AI_PATTERN = r"\b(?:ai|artificial intelligence|chatgpt|llms?|copilot)\b"
-
-# add or modify the AI_PATTERN later.
+AI_PATTERN = (
+    r"\b(?:ai|a\.i|artificial intelligence|gen ?ai|generative ai"
+    r"|chat ?gpt|gpts?|gpt-?\d\w*|openai|anthropic"
+    r"|llms?|large language models?|copilot|claude|gemini)\b"
+)
