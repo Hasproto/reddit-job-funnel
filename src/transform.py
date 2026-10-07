@@ -23,3 +23,22 @@ AI_PATTERN = (
     r"|chat ?gpt|gpts?|gpt-?\d\w*|openai|anthropic"
     r"|llms?|large language models?|copilot|claude|gemini)\b"
 )
+def clean_posts(df):
+    """Remove bad rows and build one 'text' column from title + body."""
+    df = df.drop_duplicates(subset="id")                      
+    df = df[~df["selftext"].isin(["[removed]", "[deleted]"])]  # ~ means NOT
+    df = df[df["author"] != "AutoModerator"]                    
+    df = df.copy()  # make a fresh copy so pandas doesn't warn when we add columns below
+
+    df["selftext"] = df["selftext"].fillna("")                 # instead of #
+    df["text"] = df["title"] + " " + df["selftext"]            # one column to search in
+
+    # created_utc is seconds epcoch or sth
+    df["created_at"] = pd.to_datetime(df["created_utc"], unit="s")
+
+    # no usernames for the analysis, so drop them for privacy
+    df = df.drop(columns=["author", "selftext", "created_utc"])
+
+
+    
+    return df
