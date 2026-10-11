@@ -42,3 +42,24 @@ def clean_posts(df):
 
     
     return df
+
+def find_number(text, patterns):
+    """Try each pattern; return the first number found, or None if nothing matches."""
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)   # IGNORECASE: "Offers" = "offers"
+        if match:
+            number_text = match.group(1)                   # group(1) = the part inside ( )
+            return int(number_text.replace(",", ""))       
+    return None
+
+
+def add_number_columns(df):
+    """Add applications / interviews / offers columns using the patterns above."""
+    # apply runs a function on every row of the column.
+    df["applications"] = df["text"].apply(lambda t: find_number(t, APPLICATION_PATTERNS))
+    df["interviews"] = df["text"].apply(lambda t: find_number(t, INTERVIEW_PATTERNS))
+    df["offers"] = df["text"].apply(lambda t: find_number(t, OFFER_PATTERNS))
+
+    for col in ["applications", "interviews", "offers"]:
+        df[col] = df[col].astype("Int64")
+    return df
