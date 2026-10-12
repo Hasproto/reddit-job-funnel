@@ -63,3 +63,25 @@ def add_number_columns(df):
     for col in ["applications", "interviews", "offers"]:
         df[col] = df[col].astype("Int64")
     return df
+
+def main():
+    df = pd.read_json(INPUT_FILE)
+    print(f"Raw posts:   {len(df)}")
+
+    df = clean_posts(df)
+    print(f"Clean posts: {len(df)}")
+
+    df = add_number_columns(df)
+    df["mentions_ai"] = df["text"].str.contains(AI_PATTERN, case=False, regex=True)
+
+    # Mini audit my old buggy search vs. fixed search, on the same posts
+    old_way = df["text"].str.contains("ai", case=False, regex=False).sum()
+    new_way = df["mentions_ai"].sum()
+    print(f"AI posts, old buggy search: {old_way} ({old_way / len(df):.0%})")
+    print(f"AI posts, fixed search:     {new_way} ({new_way / len(df):.0%})")
+
+    found = df["applications"].notna().sum()
+    print(f"Posts that mention a number of applications: {found}")
+
+    df.to_csv(OUTPUT_FILE, index=False)   # index  = False do not save pandas row numbers
+    print(f"Saved to {OUTPUT_FILE}")
