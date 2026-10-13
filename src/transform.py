@@ -85,3 +85,7 @@ def main():
 
     df.to_csv(OUTPUT_FILE, index=False)   # index  = False do not save pandas row numbers
     print(f"Saved to {OUTPUT_FILE}")
+
+
+if __name__ == "__main__":
+    main()
