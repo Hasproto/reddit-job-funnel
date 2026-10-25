@@ -29,3 +29,35 @@ SELECT
 FROM posts
 GROUP BY month
 ORDER BY month;
+
+-- Q4
+SELECT
+    ROUND(AVG(applications), 1) AS avg_applications,
+    MEDIAN(applications)        AS median_applications,
+    ROUND(AVG(interviews), 1)   AS avg_interviews,
+    MEDIAN(interviews)          AS median_interviews,
+    ROUND(AVG(offers), 1)       AS avg_offers,
+    MEDIAN(offers)              AS median_offers
+FROM posts;
+
+
+-- Q5 -Interview rate: out of every 100 applications, how many led to an interview?
+ 
+SELECT
+    COUNT(*)                                             AS posts_used,
+    ROUND(100.0 * SUM(interviews) / SUM(applications), 2) AS interviews_per_100_apps
+FROM posts
+WHERE applications IS NOT NULL
+  AND interviews   IS NOT NULL;
+
+
+-- Q6- The 10 posts with the most applications.
+SELECT
+    title,
+    applications,
+    interviews,
+    offers
+FROM posts
+WHERE applications IS NOT NULL
+ORDER BY applications DESC
+LIMIT 10;
