@@ -1,6 +1,6 @@
 -- analysis.sql
--- Questions I asked the data and  answered with SQL.
--- Tables: posts (one row per post) and monthly_summary (one row per month).
+
+-- Tables: posts -one row per post- and monthly_summary -one row per month-
  
 
 
@@ -30,14 +30,14 @@ FROM posts
 GROUP BY month
 ORDER BY month;
 
--- Q4
+-- Q4  For posts that report numbers, what are the typical values?
 SELECT
     ROUND(AVG(applications), 1) AS avg_applications,
-    MEDIAN(applications)        AS median_applications,
+    MEDIAN(applications) AS median_applications,
     ROUND(AVG(interviews), 1)   AS avg_interviews,
-    MEDIAN(interviews)          AS median_interviews,
-    ROUND(AVG(offers), 1)       AS avg_offers,
-    MEDIAN(offers)              AS median_offers
+    MEDIAN(interviews) AS median_interviews,
+    ROUND(AVG(offers), 1) AS avg_offers,
+    MEDIAN(offers)   AS median_offers
 FROM posts;
 
 
@@ -61,3 +61,36 @@ FROM posts
 WHERE applications IS NOT NULL
 ORDER BY applications DESC
 LIMIT 10;
+
+-- Q7-  Did people who got an offer send fewer applications than people who did not?
+SELECT
+    CASE WHEN offers > 0 
+    THEN 'got offer' 
+    ELSE 'no offer' 
+    END AS outcome,
+
+    COUNT(*) AS posts,
+    MEDIAN(applications) AS median_applications
+FROM posts
+WHERE applications IS NOT NULL
+  AND offers  IS NOT NULL
+GROUP BY outcome;
+
+
+-- Q8- Do posts that mention AI get more comments?
+SELECT
+    mentions_ai,
+    COUNT(*) AS posts,
+    ROUND(AVG(num_comments), 1) AS avg_comments
+FROM posts
+GROUP BY mentions_ai;
+
+
+-- Q9-  Data quality check: impossible numbers  
+ 
+SELECT
+    title,
+    applications,
+    interviews
+FROM posts
+WHERE interviews > applications;
