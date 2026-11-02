@@ -94,3 +94,43 @@ SELECT
     interviews
 FROM posts
 WHERE interviews > applications;
+
+SELECT
+    CASE
+        WHEN applications < 50   THEN '1. under 50'
+        WHEN applications < 200  THEN '2. 50 to 199'
+        WHEN applications < 500  THEN '3. 200 to 499'
+        ELSE                          '4. 500 or more'
+    END  AS application_range,
+    COUNT(*) AS posts,
+    MEDIAN(interviews)  AS median_interviews
+FROM posts
+WHERE applications IS NOT NULL
+GROUP BY application_range
+ORDER BY application_range;
+
+
+-- Q11- How did the number of posts change from the month before it?
+ 
+SELECT
+    month,
+    total_posts,
+    LAG(total_posts) OVER (ORDER BY month) AS previous_month_posts,
+    total_posts - LAG(total_posts) OVER (ORDER BY month) AS change
+FROM monthly_summary
+ORDER BY month;
+
+-- Q12- Which day of the week gets the most posts?
+ 
+WITH post_days AS (
+    SELECT
+        dayname(created_at)   AS day_name,
+        dayofweek(created_at) AS day_number
+    FROM posts
+)
+SELECT
+    day_name,
+    COUNT(*) AS posts
+FROM post_days
+GROUP BY day_name, day_number
+ORDER BY day_number;
