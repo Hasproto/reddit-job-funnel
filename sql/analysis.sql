@@ -124,7 +124,7 @@ ORDER BY month;
  
 WITH post_days AS (
     SELECT
-        dayname(created_at)   AS day_name,
+        dayname(created_at) AS day_name,
         dayofweek(created_at) AS day_number
     FROM posts
 )
@@ -134,3 +134,37 @@ SELECT
 FROM post_days
 GROUP BY day_name, day_number
 ORDER BY day_number;
+
+-- Q13- Top 3 most upvoted posts in each month.
+SELECT month, title, score
+FROM (
+    SELECT
+        strftime(created_at, '%Y-%m') AS month,
+        title,
+        score,
+        ROW_NUMBER() OVER (PARTITION BY strftime(created_at, '%Y-%m')
+                           ORDER BY score DESC) AS rank_in_month
+    FROM posts
+) AS ranked
+WHERE rank_in_month <= 3
+ORDER BY month, rank_in_month;
+
+
+-- Q14- Months with at least 10 posts that report applications.
+SELECT
+    strftime(created_at, '%Y-%m') AS month,
+    COUNT(applications) AS posts_with_applications
+FROM posts
+GROUP BY month
+HAVING COUNT(applications) >= 10
+ORDER BY month;
+
+
+-- Q15- Running total of posts, and each month's percent of all posts.
+SELECT
+    month,
+    total_posts,
+    SUM(total_posts) OVER (ORDER BY month) AS running_total,
+    ROUND(100.0 * total_posts / SUM(total_posts) OVER (), 1) AS pct_of_all_posts
+FROM monthly_summary
+ORDER BY month;
