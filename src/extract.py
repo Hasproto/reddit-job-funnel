@@ -4,6 +4,7 @@
      
 
 import json    
+import os
 import time   
 import requests   
 
@@ -81,6 +82,9 @@ def main():
 
         # Wait 1 second so we don't overload this free service
         time.sleep(1)
+
+    #Create the folder if it does not exist 
+    os.makedirs("data/raw", exist_ok=True)    
 
     # Save all posts to a JSON file
     with open(OUTPUT_FILE, "w") as f:
