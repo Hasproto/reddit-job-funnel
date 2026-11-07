@@ -78,7 +78,8 @@ def main():
 
         # Next page starts at the time of the newest post we got.
         # created_utc = post time in seconds since Jan 1, 1970 (the API accepts this format)
-        after = page[-1]["created_utc"]
+        # Go back 1 second so posts made in the same second aren't skipped (seen_ids removes repeats)
+        after = page[-1]["created_utc"] -1
 
         # Wait 1 second so we don't overload this free service
         time.sleep(1)
