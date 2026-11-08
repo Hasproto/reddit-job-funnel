@@ -62,6 +62,14 @@ def add_number_columns(df):
 
     for col in ["applications", "interviews", "offers"]:
         df[col] = df[col].astype("Int64")
+
+
+    # More interviews than applications = extraction mistake, so clear the numbers.
+    # fillna(False): skip rows with missing numbers.
+    bad = (df["interviews"] > df["applications"]).fillna(False)
+    df.loc[bad, ["applications", "interviews", "offers"]] = pd.NA
+    print(f"Cleared {bad.sum()} posts with impossible numbers")
+
     return df
 
 def main():
