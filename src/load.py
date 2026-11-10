@@ -1,52 +1,36 @@
-# load.py 
-# Loads the clean CSV into DuckDB and builds a monthly summary table.
-# Run from the project folder: python src/load.py
+# load.py
+# Step 3 of the pipeline: put the clean posts into a database
 
 import duckdb
 
-INPUT_FILE = "data/clean/posts_clean.csv"
+CSV_FILE = "data/clean/posts_clean.csv"
+DB_FILE = "data/jobs.duckdb"
 
- # created if it doesn't exist
-DB_FILE = "data/jobs.duckdb"   
+# Open the database file (it is created if it does not exist)
+con = duckdb.connect(DB_FILE)
 
+# Copy all clean posts from the CSV file into a table called posts
+con.execute(f"CREATE OR REPLACE TABLE posts AS SELECT * FROM read_csv_auto('{CSV_FILE}')")
 
-def main():
-    con = duckdb.connect(DB_FILE)
+# Build a small table with one row per month for the dashboard
+con.execute("""
+    CREATE OR REPLACE TABLE monthly_summary AS
+    SELECT
+        strftime(created_at, '%Y-%m') AS month,
+        COUNT(*)                      AS total_posts,
+        COUNT_IF(mentions_ai)         AS ai_posts,
+        COUNT(applications)           AS posts_with_numbers,
+        MEDIAN(applications)          AS median_applications,
+        MEDIAN(interviews)            AS median_interviews,
+        MEDIAN(offers)                AS median_offers
+    FROM posts
+    GROUP BY month
+    ORDER BY month
+""")
 
-    # CREATE OR REPLACE: safe to rerun; rebuilds the table each time.
-    # read_csv_auto: DuckDB guesses column types from the CSV.
-    con.execute(f"""
-        CREATE OR REPLACE TABLE posts AS
-        SELECT * FROM read_csv_auto('{INPUT_FILE}')
-    """)
+# Show the monthly table in the terminal
+con.sql("SELECT * FROM monthly_summary").show()
 
-    count = con.execute("SELECT COUNT(*) FROM posts").fetchone()[0]
-    print(f"Loaded {count} posts into the 'posts' table")
-
-    # COUNT(applications) skips empty (NULL) values, unlike COUNT(*).
-    # MEDIAN instead of AVG: a few huge numbers ( 2,000 applications)
-    # would distort the average.
-    con.execute("""
-        CREATE OR REPLACE TABLE monthly_summary AS
-        SELECT
-            strftime(created_at, '%Y-%m')               AS month,
-            COUNT(*)                                     AS total_posts,
-            SUM(CASE WHEN mentions_ai THEN 1 ELSE 0 END) AS ai_posts,
-            COUNT(applications)                          AS posts_with_numbers,
-            MEDIAN(applications)                         AS median_applications,
-            MEDIAN(interviews)                           AS median_interviews,
-            MEDIAN(offers)                               AS median_offers
-        FROM posts
-        GROUP BY month
-        ORDER BY month
-    """)
-
-    print("\nMonthly summary:")
-    con.sql("SELECT * FROM monthly_summary").show()
-
-    con.close()
-    print(f"Saved database to {DB_FILE}")
-
-
-if __name__ == "__main__":
-    main()
+# Close the database when done
+con.close()
+print(f"Saved database to {DB_FILE}")
