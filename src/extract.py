@@ -42,13 +42,22 @@ def get_one_page(after):
         "fields": FIELDS,
     }
 
-    response = requests.get(URL, params=params, timeout=60)
+    # Try up to 3 times. because the internet or the server can fail for a moment
+    for attempt in range(3):
+        try:
+            response = requests.get(URL, params=params, timeout=60)
+            response.raise_for_status()
+            return response.json()["data"]
+        except requests.RequestException as error:
+            print(f"Request failed: {error}. Trying again in 10 seconds...")
+            time.sleep(10)
 
-    # If the server returned an error ,stop  
-    response.raise_for_status()
+    # Failed 3 times in a row. So ,stop with a clear message
+    raise RuntimeError("The API failed 3 times in a row. Stopping.")  
 
-    # The API sends back
-    return response.json()["data"]
+     
+
+     
 
 def main():
     """Download all pages and save every post into one file."""
