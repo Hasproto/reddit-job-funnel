@@ -3,8 +3,14 @@
 # how to run Run: streamlit run src/dashboard.py
 
 import duckdb
+import os
 import pandas as pd
 import streamlit as st
+
+# stop with a message if the pipeline has not been run yet
+if not os.path.exists("data/jobs.duckdb"):
+    st.error("No database found. Run: python run_pipeline.py")
+    st.stop()
 
 # Read the data from the database  
 con = duckdb.connect("data/jobs.duckdb", read_only=True)
