@@ -12,6 +12,20 @@ con = duckdb.connect(DB_FILE)
 # Copy all clean posts from the CSV file into a table called posts
 con.execute(f"CREATE OR REPLACE TABLE posts AS SELECT * FROM read_csv_auto('{CSV_FILE}')")
 
+# Data quality checks: count total posts and duplicate posts, and posts with no date
+total = con.sql("SELECT COUNT(*) FROM posts").fetchall()[0][0]
+duplicates = con.sql("SELECT COUNT(*) - COUNT(DISTINCT id) FROM posts").fetchall()[0][0]
+missing_dates = con.sql("SELECT COUNT(*) FROM posts WHERE created_at IS NULL").fetchall()[0][0]
+
+# Stop the pipeline if any check fails
+if total == 0:
+    raise ValueError("No posts were loaded. Check the extract and transform steps.")
+if duplicates > 0:
+    raise ValueError(f" Found {duplicates} duplicate post IDs.")
+if missing_dates > 0:
+    raise ValueError(f" Found {missing_dates} posts with no date.")
+print(f"Quality checks passed: {total} posts, no duplicates, no missing dates")
+
 # Build a small table with one row per month for the dashboard
 con.execute("""
     CREATE OR REPLACE TABLE monthly_summary AS
